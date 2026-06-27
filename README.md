@@ -19,6 +19,21 @@ Các công cụ tin sinh học chạy trong container. Người dùng chỉ cầ
 - File FASTA hệ tham chiếu
 - File BED vùng bắt giữ cho chế độ WES
 
+## Cấu Trúc Thư Mục
+
+├── main.nf/                  Điều phối chính toàn bộ workflow
+├── nextflow.config/          Định nghĩa tham số mặc định và profile chạy
+├── conf/
+│   ├── base.config/          Cấu hình tài nguyên mặc định (CPU, RAM, time)
+│   └── modules.config/       Cấu hình thư mục output và đối số cho từng module
+├── modules/
+│   └── local/
+│       └── *.nf/             Các process module (định nghĩa các bước chạy riêng lẻ)
+├── test_data/                Dữ liệu tổng hợp nhỏ dùng để chạy thử 
+├── run_pipeline.sh/          Launcher script bằng Bash để kích hoạt workflow
+├── setup.sh/                 Kiểm tra và thiết lập môi trường cục bộ
+└── validate_pipeline.sh/     Kiểm tra nhanh cấu trúc và tính toàn vẹn của repo
+
 ## Cài Đặt
 
 ```bash

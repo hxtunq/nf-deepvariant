@@ -5,7 +5,7 @@ Pipeline Nextflow DSL2 để gọi biến thể nhỏ từ dữ liệu WES/WGS p
 ## Quy Trình
 
 ```text
-FASTQ -> kiểm tra FASTQ -> FastQC -> fastp -> BWA-MEM2 -> samtools sort/index/QC -> DeepVariant -> bcftools QC -> MultiQC
+FASTQ -> kiểm tra FASTQ -> FastQC -> fastp -> BWA-MEM2 -> samtools sort/index/QC -> DeepVariant -> bcftools QC -> tổng hợp phiên bản -> MultiQC
 ```
 
 Các công cụ tin sinh học chạy trong container. Người dùng chỉ cần cài Nextflow và một container engine như Docker, Singularity hoặc Apptainer.

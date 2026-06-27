@@ -14,8 +14,8 @@ Sort/index BAM bằng samtools
 QC BAM bằng samtools flagstat/stats/idxstats
 Gọi biến thể bằng DeepVariant
 QC VCF bằng bcftools
-Báo cáo MultiQC
 Tổng hợp phiên bản phần mềm
+Báo cáo MultiQC
 ```
 
 ## File Chính

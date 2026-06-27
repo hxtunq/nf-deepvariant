@@ -156,9 +156,13 @@ workflow ALIGN {
     ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
     
     ch_bam_with_bai = SAMTOOLS_SORT.out.bam.join(SAMTOOLS_INDEX.out.bai)
-    BAM_QC(ch_bam_with_bai, fasta)
-    ch_bam_qc = BAM_QC.out.summary
-    ch_versions = ch_versions.mix(BAM_QC.out.versions)
+        BAM_QC(ch_bam_with_bai, fasta)
+        ch_bam_qc = BAM_QC.out.summary
+        ch_versions = ch_versions.mix(BAM_QC.out.versions)
+        ch_multiqc_files = ch_multiqc_files
+            .mix(BAM_QC.out.flagstat)
+            .mix(BAM_QC.out.stats)
+            .mix(BAM_QC.out.idxstats)
     
     emit:
     bam            = SAMTOOLS_SORT.out.bam   // channel: [ val(meta), bam ]
@@ -202,11 +206,12 @@ workflow CALL_VARIANTS {
     ch_versions = ch_versions.mix(VCF_VALIDATION.out.versions)
     
     emit:
-    vcf            = ch_vcf               // channel: [ val(meta), vcf, tbi ]
-    gvcf           = ch_gvcf              // channel: [ val(meta), gvcf, tbi ]
-    vcf_stats      = BCFTOOLS_STATS.out.stats     // channel: [ val(meta), stats ]
-    vcf_validation = ch_vcf_validation    // channel: [ val(meta), validation ]
-    versions       = ch_versions
+        vcf            = ch_vcf               // channel: [ val(meta), vcf, tbi ]
+        gvcf           = ch_gvcf              // channel: [ val(meta), gvcf, tbi ]
+        vcf_stats      = BCFTOOLS_STATS.out.stats     // channel: [ val(meta), stats ]
+        vcf_validation = ch_vcf_validation    // channel: [ val(meta), validation ]
+        multiqc_files  = BCFTOOLS_STATS.out.stats
+        versions       = ch_versions
 }
 
 /*
@@ -235,7 +240,14 @@ workflow {
     }
     
     // Chuẩn hóa input.
-    ch_input = Channel.value(file(params.input, checkIfExists: true))
+    def samplesheet_file = file(params.input, checkIfExists: true)
+    def samplesheet_dir = samplesheet_file.parent
+    def resolve_samplesheet_path = { value ->
+        def raw_path = value as String
+        def is_absolute = java.nio.file.Paths.get(raw_path).isAbsolute()
+        file(is_absolute ? raw_path : "${samplesheet_dir}/${raw_path}", checkIfExists: true)
+    }
+    ch_input = Channel.value(samplesheet_file)
     ch_fasta = Channel.value(file(params.fasta, checkIfExists: true))
     
     // Xác định model DeepVariant theo kiểu dữ liệu.
@@ -262,6 +274,7 @@ workflow {
     ch_fastqc_for_multiqc = Channel.empty()
     ch_trim_json_for_multiqc = Channel.empty()
     ch_alignment_logs_for_multiqc = Channel.empty()
+    ch_variant_qc_for_multiqc = Channel.empty()
     
     /*
      * ========================================
@@ -270,13 +283,13 @@ workflow {
      */
     INPUT_CHECK(ch_input)
     ch_reads = Channel
-        .fromPath(params.input, checkIfExists: true)
+        .fromPath(samplesheet_file, checkIfExists: true)
         .splitCsv(header: true)
         .map { row ->
             def meta = [ id: row.sample_id ]
             def reads = row.fastq_2 ?
-                [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] :
-                [ file(row.fastq_1, checkIfExists: true) ]
+                [ resolve_samplesheet_path(row.fastq_1), resolve_samplesheet_path(row.fastq_2) ] :
+                [ resolve_samplesheet_path(row.fastq_1) ]
             [ meta, reads ]
         }
     
@@ -339,27 +352,30 @@ workflow {
             ch_target_bed
         )
         ch_versions = ch_versions.mix(CALL_VARIANTS.out.versions)
+        ch_variant_qc_for_multiqc = CALL_VARIANTS.out.multiqc_files
     }
     
     /*
      * ========================================
-     *  BƯỚC 5: Báo cáo MultiQC
+     *  BƯỚC 5: Tổng hợp phiên bản phần mềm
+     * ========================================
+     */
+    CUSTOM_DUMPSOFTWAREVERSIONS(
+        ch_versions.unique().collectFile(name: 'collated_versions.yml')
+    )
+    
+    /*
+     * ========================================
+     *  BƯỚC 6: Báo cáo MultiQC
      * ========================================
      */
     if (!params.skip_multiqc) {
         ch_multiqc_files = ch_fastqc_for_multiqc.map { x -> x[1] }
             .mix(ch_trim_json_for_multiqc.map { x -> x[1] })
             .mix(ch_alignment_logs_for_multiqc.map { x -> x[1] })
+            .mix(ch_variant_qc_for_multiqc.map { x -> x[1] })
+            .mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml)
         
         MULTIQC(ch_multiqc_files.collect())
     }
-    
-    /*
-     * ========================================
-     *  BƯỚC 6: Tổng hợp phiên bản phần mềm
-     * ========================================
-     */
-    CUSTOM_DUMPSOFTWAREVERSIONS(
-        ch_versions.unique().collectFile(name: 'collated_versions.yml')
-    )
 }

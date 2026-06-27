@@ -1,0 +1,44 @@
+# Nextflow runtime artifacts
+.nextflow/
+.nextflow.log*
+work/
+results*/
+*_results/
+*_run/
+test_adapter_run_default_preset/
+test_adapter_run_explicit/
+
+# Large sequencing outputs and indexes
+*.bam
+*.bai
+*.cram
+*.crai
+*.sam
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.g.vcf.gz
+*.gvcf.gz
+*.gvcf.gz.tbi
+
+# FASTQ data generated outside bundled tiny test data
+*.fastq
+*.fq
+*.fastq.gz
+*.fq.gz
+!test_data/fastq/*.fastq.gz
+
+# Logs and temporary files
+*.log
+*.tmp
+tmp/
+
+# Local agent/editor state
+.codex/
+.agents/
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

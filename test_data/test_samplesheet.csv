@@ -1,0 +1,2 @@
+sample_id,fastq_1,fastq_2
+sample1,/home/user/user_data/benchmark-wes/History/c th gip ti build 1/nextflow-wes-pipeline/test_data/fastq/sample1_R1.fastq.gz,/home/user/user_data/benchmark-wes/History/c th gip ti build 1/nextflow-wes-pipeline/test_data/fastq/sample1_R2.fastq.gz

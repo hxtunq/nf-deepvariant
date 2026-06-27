@@ -16,10 +16,10 @@
  *      - Cấu hình được phiên bản DeepVariant
  *  
  *  Các bước:
- *    1. QC read thô bằng FastQC
- *    2. Trim adapter/chất lượng bằng fastp
- *    3. Căn chỉnh read vào hệ tham chiếu bằng BWA-MEM2
- *    4. Sort/index và QC BAM bằng samtools
+ *    1. QC đoạn đọc thô bằng FastQC
+ *    2. Cắt adapter/chất lượng bằng fastp
+ *    3. Căn chỉnh đoạn đọc vào hệ gen tham chiếu bằng BWA-MEM2
+ *    4. Sắp xếp, tạo chỉ mục và QC BAM bằng samtools
  *    5. Gọi biến thể bằng DeepVariant
  *    6. Tổng hợp báo cáo bằng MultiQC
  */
@@ -58,7 +58,7 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS       } from './modules/local/utils'
  * ========================================
  */
 
-// Chuẩn bị index cho hệ tham chiếu nếu người dùng chưa cung cấp.
+// Chuẩn bị chỉ mục cho hệ gen tham chiếu nếu người dùng chưa cung cấp.
 workflow PREPARE_REFERENCE {
     take:
     fasta
@@ -68,13 +68,13 @@ workflow PREPARE_REFERENCE {
     ch_fasta_indexed = fasta
     ch_fai = fasta_fai
     
-    // Tạo FASTA index nếu chưa có.
+    // Tạo chỉ mục FASTA nếu chưa có.
     if (!fasta_fai) {
         SAMTOOLS_FAIDX(fasta)
         ch_fai = SAMTOOLS_FAIDX.out.fai
     }
     
-    // Tạo BWA-MEM2 index cho hệ tham chiếu.
+    // Tạo chỉ mục BWA-MEM2 cho hệ tham chiếu.
     BWA_MEM2_INDEX(fasta)
     ch_bwa_index = BWA_MEM2_INDEX.out.index
     
@@ -94,19 +94,19 @@ workflow QC_AND_TRIM {
     ch_fastqc_results = Channel.empty()
     ch_fastq_validation = Channel.empty()
     
-    // Kiểm tra FASTQ; bước nhẹ và luôn chạy.
+    // Kiểm tra FASTQ
     FASTQ_VALIDATION(reads)
     ch_fastq_validation = FASTQ_VALIDATION.out.summary
     ch_versions = ch_versions.mix(FASTQ_VALIDATION.out.versions)
     
-    // QC read thô.
+    // QC đoạn đọc thô.
     if (!params.skip_fastqc) {
         FASTQC_RAW(reads)
         ch_fastqc_results = FASTQC_RAW.out.results
         ch_versions = ch_versions.mix(FASTQC_RAW.out.versions)
     }
     
-    // Trim adapter/chất lượng.
+    // Cắt adapter/đoạn đọc chất lượng thấp.
     ch_trimmed_reads = reads
     ch_trim_json = Channel.empty()
     
@@ -116,7 +116,7 @@ workflow QC_AND_TRIM {
         ch_trim_json = FASTP.out.json
         ch_versions = ch_versions.mix(FASTP.out.versions)
         
-        // QC sau trim.
+        // QC sau cắt.
         if (!params.skip_fastqc) {
             FASTQC_TRIMMED(ch_trimmed_reads)
             ch_fastqc_results = ch_fastqc_results.mix(FASTQC_TRIMMED.out.results)
@@ -179,7 +179,7 @@ workflow CALL_VARIANTS {
     bam         // channel: [ val(meta), bam ]
     bai         // channel: [ val(meta), bai ]
     fasta       // channel chứa FASTA tham chiếu
-    fai         // channel chứa FASTA index
+    fai         // channel chứa chỉ mục FASTA
     target_bed  // channel chứa BED vùng đích; dùng cho WES
     
     main:
@@ -295,7 +295,7 @@ workflow {
     
     /*
      * ========================================
-     *  BƯỚC 1: Chuẩn bị index hệ tham chiếu
+     *  BƯỚC 1: Chuẩn bị chỉ mục cho hệ gen tham chiếu
      * ========================================
      */
     PREPARE_REFERENCE(
@@ -309,7 +309,7 @@ workflow {
     
     /*
      * ========================================
-     *  BƯỚC 2: QC và trim
+     *  BƯỚC 2: QC và cắt tỉa đoạn đọc
      * ========================================
      */
     QC_AND_TRIM(ch_reads)
@@ -320,7 +320,7 @@ workflow {
     
     /*
      * ========================================
-     *  BƯỚC 3: Căn chỉnh
+     *  BƯỚC 3: Căn chỉnh đoạn đọc
      * ========================================
      */
     ALIGN(

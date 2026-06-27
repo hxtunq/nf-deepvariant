@@ -1,25 +1,23 @@
 # nf-deepvariant
 
-Pipeline Nextflow DSL2 để gọi biến thể nhỏ từ dữ liệu WES/WGS paired-end FASTQ bằng DeepVariant.
+Pipeline Nextflow DSL2 gọi biến thể dòng mầm nhỏ từ dữ liệu WES/WGS paired-end FASTQ bằng DeepVariant.
 
 ## Quy Trình
 
 ```text
-FASTQ -> kiểm tra FASTQ -> FastQC -> fastp -> BWA-MEM2 -> samtools sort/index/QC -> DeepVariant -> bcftools QC -> tổng hợp phiên bản -> MultiQC
+FASTQ -> kiểm tra FASTQ -> FastQC -> fastp -> BWA-MEM2 -> samtools sort/index/QC -> DeepVariant -> bcftools QC -> MultiQC
 ```
 
-Các công cụ tin sinh học chạy trong container. Người dùng chỉ cần cài Nextflow và một container engine như Docker, Singularity hoặc Apptainer.
+Các công cụ tin sinh học chạy trong container. Người dùng chỉ cần cài Nextflow và một container engine như Docker/Singularity/Apptainer.
 
 ## Yêu Cầu
 
 - Linux, WSL2 hoặc terminal trên hệ thống HPC
-- Java 11 trở lên
-- Nextflow 23.04.0 trở lên
+- Java phiên bản 11 trở lên
+- Nextflow phiên bản 23.04.0 trở lên
 - Docker, Singularity hoặc Apptainer
 - File FASTA hệ tham chiếu
 - File BED vùng bắt giữ cho chế độ WES
-
-Với WSL2, hãy cài Docker Desktop trên Windows, bật WSL integration, rồi chạy pipeline trong terminal WSL.
 
 ## Cài Đặt
 
@@ -30,7 +28,7 @@ chmod +x setup.sh run_pipeline.sh validate_pipeline.sh test_pipeline.sh
 ./setup.sh
 ```
 
-Nếu máy chưa có Nextflow:
+Nếu chưa cài đặt Nextflow cục bộ:
 
 ```bash
 curl -s https://get.nextflow.io | bash
@@ -39,7 +37,7 @@ sudo mv nextflow /usr/local/bin/
 
 ## Samplesheet
 
-Tạo file CSV chứa đường dẫn tuyệt đối hoặc đường dẫn tương đối từ thư mục chạy pipeline:
+Tạo file CSV chứa đường dẫn tuyệt đối hoặc đường dẫn tương đối trỏ file fastq đầu vào từ thư mục chạy pipeline:
 
 ```csv
 sample_id,fastq_1,fastq_2
@@ -99,20 +97,20 @@ Mặc định, fastp dùng cặp adapter Illumina phổ biến cùng cơ chế t
 
 ## Chạy Thử
 
-Repo có sẵn bộ dữ liệu tổng hợp rất nhỏ để kiểm tra pipeline khởi động đúng:
+Repo có sẵn bộ dữ liệu nhân tạo rất nhỏ để kiểm tra xem pipeline có hoạt động được hay không:
 
 ```bash
 nextflow run main.nf -profile test,docker
 ```
 
-Bộ test này chỉ dùng để kiểm tra kỹ thuật, không phải benchmark sinh học.
+Bộ test này chỉ dùng để kiểm tra kỹ thuật, không có ý nghĩa sinh học.
 
 ## Kết Quả
 
 ```text
 results/
-├── fastq_qc/       Tóm tắt kiểm tra tính toàn vẹn FASTQ
-├── fastqc/         Báo cáo QC read thô và read sau trim
+├── fastq_qc/       Kiểm tra chất lượng file dữ liệu NGS đầu vào định dạng FASTQ
+├── fastqc/         Báo cáo QC đoạn đọc thô và đoạn đọc sau trim
 ├── fastp/          Báo cáo trim adapter/chất lượng
 ├── bwa_mem2/       Log căn chỉnh
 ├── samtools/       BAM đã sort và file index
@@ -126,6 +124,5 @@ results/
 ## Ghi Chú
 
 - Chế độ WES cần `--target_bed` để DeepVariant giới hạn gọi biến thể trong vùng bắt giữ.
-- Phiên bản hiện tại nhận đầu vào từ FASTQ. Chưa hỗ trợ chạy trực tiếp từ BAM đã căn chỉnh.
+- Phiên bản hiện tại nhận đầu vào từ FASTQ. Không hỗ trợ chạy trực tiếp từ BAM đã căn chỉnh.
 - Mặc định pipeline dùng image CPU của DeepVariant: `google/deepvariant:1.10.0`.
-- DeepVariant có thể cần nhiều CPU, RAM và dung lượng đĩa với dữ liệu WES/WGS thật. Nên đặt `--dv_num_shards` gần với số CPU Docker/WSL được cấp.

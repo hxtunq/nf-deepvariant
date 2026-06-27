@@ -2,9 +2,7 @@
 
 # ========================================
 #  Script kiểm tra môi trường cho pipeline WES/WGS DeepVariant
-# ========================================
-#  Script này kiểm tra máy đã sẵn sàng chạy pipeline chưa.
-#  Không cần cài công cụ tin sinh học cục bộ vì mọi thứ chạy trong container.
+#  Không cần cài các công cụ tin sinh học cục bộ vì mọi thứ chạy trong container.
 # ========================================
 
 set -e
@@ -40,7 +38,7 @@ check_version() {
 ERRORS=0
 
 # ========================================
-# 1. Kiem tra Nextflow (bat buoc)
+# 1. Kiem tra Nextflow
 # ========================================
 echo ""
 echo "1. Kiem tra Nextflow..."
@@ -113,7 +111,7 @@ echo "4. Kiem tra dung luong dia..."
 AVAIL_GB=$(df -BG . | tail -1 | awk '{print $4}' | sed 's/G//')
 echo "  Kha dung: ${AVAIL_GB}GB"
 if [ "$AVAIL_GB" -lt 50 ]; then
-    echo -e "${YELLOW}⚠ Canh bao: dung luong thap (<50GB). WGS co the can 100GB+${NC}"
+    echo -e "${YELLOW} Canh bao: dung luong thap (<50GB). WGS co the can 100GB+${NC}"
 fi
 
 # ========================================
@@ -124,7 +122,7 @@ echo "5. Kiem tra RAM..."
 TOTAL_MEM=$(free -g 2>/dev/null | awk '/^Mem:/{print $2}' || echo "unknown")
 echo "  Tong: ${TOTAL_MEM}GB"
 if [ "$TOTAL_MEM" != "unknown" ] && [ "$TOTAL_MEM" -lt 16 ]; then
-    echo -e "${YELLOW}⚠ Canh bao: <16GB RAM. DeepVariant khuyen nghi 32GB+${NC}"
+    echo -e "${YELLOW} Canh bao: <16GB RAM. DeepVariant khuyen nghi 32GB+${NC}"
 fi
 
 # ========================================

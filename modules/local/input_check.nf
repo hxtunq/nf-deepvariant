@@ -1,6 +1,6 @@
 /*
  * ========================================
- *  INPUT_CHECK - Parse and validate samplesheet
+ *  INPUT_CHECK - Đọc và kiểm tra samplesheet
  * ========================================
  */
 
@@ -26,7 +26,7 @@ process INPUT_CHECK {
     script:
     def args = task.ext.args ?: ''
     """
-    # Validate samplesheet format
+    # Kiểm tra định dạng samplesheet.
     python3 << 'EOF'
 import csv
 import sys
@@ -50,7 +50,7 @@ with open(samplesheet, 'r') as f:
         print("ERROR: Samplesheet is empty")
         sys.exit(1)
     
-    # Validate each row
+    # Kiểm tra từng dòng.
     for i, row in enumerate(rows, 1):
         if not row.get('sample_id'):
             print(f"ERROR: Row {i}: missing sample_id")
@@ -60,14 +60,14 @@ with open(samplesheet, 'r') as f:
             print(f"ERROR: Row {i}: missing fastq_1")
             sys.exit(1)
         
-        # Check if paired-end
+        # Kiểm tra có phải paired-end không.
         has_r2 = bool(row.get('fastq_2'))
         if not has_r2:
             print(f"WARNING: Row {i} ({row['sample_id']}): single-end mode")
     
     print(f"Validated {len(rows)} samples")
     
-    # Write validated samplesheet
+    # Ghi samplesheet đã kiểm tra.
     with open('samplesheet_validated.csv', 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=headers)
         writer.writeheader()
@@ -82,4 +82,3 @@ EOF
     END_VERSIONS
     """
 }
-

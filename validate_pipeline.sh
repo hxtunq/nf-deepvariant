@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # ========================================
-#  Pipeline Validation Script
+#  Script kiểm tra nhanh repo pipeline
 # ========================================
 
 set -e
 
 echo "========================================"
-echo "  Validating WES/WGS DeepVariant Pipeline"
+echo "  Kiem tra repo WES/WGS DeepVariant Pipeline"
 echo "========================================"
 
 PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,9 +15,9 @@ cd "$PIPELINE_DIR"
 
 ERRORS=0
 
-# Check required files
+# Kiem tra cac file bat buoc.
 echo ""
-echo "Checking required files..."
+echo "Kiem tra cac file bat buoc..."
 REQUIRED_FILES=(
 
     "main.nf"
@@ -66,67 +66,67 @@ for file in "${REQUIRED_FILES[@]}"; do
     if [[ -f "$file" ]]; then
         echo "  ✓ $file"
     else
-        echo "  ✗ MISSING: $file"
+        echo "  ✗ THIEU: $file"
         ((ERRORS++))
     fi
 done
 
-# Check if launcher is executable
+# Kiem tra launcher co quyen thuc thi khong.
 echo ""
-echo "Checking launcher permissions..."
+echo "Kiem tra quyen thuc thi launcher..."
 if [[ -x "run_pipeline.sh" ]]; then
-    echo "  ✓ run_pipeline.sh is executable"
+    echo "  ✓ run_pipeline.sh co quyen thuc thi"
 else
-    echo "  ✗ run_pipeline.sh is not executable"
+    echo "  ✗ run_pipeline.sh chua co quyen thuc thi"
     ((ERRORS++))
 fi
 
-# Validate Nextflow syntax (if Nextflow is available)
+# Kiem tra cu phap Nextflow neu may co Nextflow.
 echo ""
 if command -v nextflow &> /dev/null; then
-    echo "Validating Nextflow syntax..."
-    # Run with --help flag - if it shows "Input samplesheet not specified", syntax is valid
-    # (the error is about missing parameters, not syntax)
+    echo "Kiem tra cu phap Nextflow..."
+    # Chay voi --help; neu bao thieu samplesheet thi cu phap da duoc doc toi buoc validate tham so.
+    # Loi nay la loi thieu tham so, khong phai loi cu phap.
     NEXTFLOW_OUTPUT=$(nextflow run main.nf --help 2>&1 || true)
-    if echo "$NEXTFLOW_OUTPUT" | grep -q "Input samplesheet not specified"; then
-        echo "  ✓ Nextflow syntax valid (parameter validation working)"
+    if echo "$NEXTFLOW_OUTPUT" | grep -q "Chưa truyền samplesheet"; then
+        echo "  ✓ Cu phap Nextflow hop le (validate tham so hoat dong)"
     elif echo "$NEXTFLOW_OUTPUT" | grep -q "Launching\|N E X T F L O W"; then
-        echo "  ✓ Nextflow syntax valid"
+        echo "  ✓ Cu phap Nextflow hop le"
     else
-        echo "  ✗ Nextflow syntax errors detected"
+        echo "  ✗ Phat hien loi cu phap Nextflow"
         echo "$NEXTFLOW_OUTPUT" | grep -i "error" | head -3
         ((ERRORS++))
     fi
 else
-    echo "Nextflow not found - skipping syntax validation"
+    echo "Khong tim thay Nextflow - bo qua kiem tra cu phap"
 fi
 
-# Check for common issues
+# Kiem tra mot so loi thuong gap.
 echo ""
-echo "Checking for common issues..."
+echo "Kiem tra loi thuong gap..."
 
-# Check for hardcoded paths
+# Kiem tra duong dan placeholder.
 if grep -q "/absolute/path" README.md 2>/dev/null; then
-    echo "  ⚠ Warning: README contains placeholder paths - update before distribution"
+    echo "  ⚠ Canh bao: README co duong dan placeholder - nen sua truoc khi phat hanh"
 fi
 
-# Check for missing imports in main.nf
+# Kiem tra main.nf co import module khong.
 if grep -q "include {" main.nf; then
-    echo "  ✓ Module imports present in main.nf"
+    echo "  ✓ main.nf co import module"
 else
-    echo "  ✗ No module imports found in main.nf"
+    echo "  ✗ Khong thay import module trong main.nf"
     ((ERRORS++))
 fi
 
-# Summary
+# Tong ket
 echo ""
 echo "========================================"
 if [[ $ERRORS -eq 0 ]]; then
-    echo "  Validation PASSED"
-    echo "  Pipeline is ready to use"
+    echo "  Kiem tra DAT"
+    echo "  Pipeline san sang su dung"
 else
-    echo "  Validation FAILED"
-    echo "  $ERRORS error(s) found"
+    echo "  Kiem tra THAT BAI"
+    echo "  Tim thay $ERRORS loi"
 fi
 echo "========================================"
 

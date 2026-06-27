@@ -1,6 +1,6 @@
 /*
  * ========================================
- *  MULTIQC - Aggregate QC reporting
+ *  MULTIQC - Tổng hợp báo cáo QC
  * ========================================
  */
 
@@ -29,7 +29,7 @@ process MULTIQC {
     def args = task.ext.args ?: ''
     def config = params.multiqc_config ? "--config ${params.multiqc_config}" : ''
     """
-    # Run MultiQC
+    # Chạy MultiQC.
     multiqc \\
         $args \\
         $config \\

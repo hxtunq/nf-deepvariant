@@ -1,168 +1,168 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "title": "WES/WGS DeepVariant Pipeline Parameters",
-    "description": "Schema for the WES/WGS DeepVariant pipeline parameters",
+    "title": "Tham số pipeline WES/WGS DeepVariant",
+    "description": "Schema mô tả tham số cho pipeline WES/WGS DeepVariant",
     "type": "object",
     "properties": {
         "input": {
             "type": "string",
             "format": "file-path",
-            "description": "Path to samplesheet CSV file",
-            "help_text": "A CSV file with columns: sample_id, fastq_1, fastq_2 (optional for paired-end)"
+            "description": "Đường dẫn tới file samplesheet CSV",
+            "help_text": "File CSV có các cột: sample_id, fastq_1, fastq_2"
         },
         "outdir": {
             "type": "string",
             "default": "./results",
-            "description": "Output directory",
-            "help_text": "Path to output directory for results"
+            "description": "Thư mục kết quả",
+            "help_text": "Đường dẫn thư mục lưu kết quả pipeline"
         },
         "fasta": {
             "type": "string",
             "format": "file-path",
-            "description": "Reference genome FASTA file",
-            "help_text": "Path to reference genome FASTA file (must be indexed with .fai)"
+            "description": "File FASTA hệ tham chiếu",
+            "help_text": "Đường dẫn tới FASTA hệ tham chiếu"
         },
         "fasta_fai": {
             "type": "string",
             "format": "file-path",
-            "description": "Reference genome FASTA index",
-            "help_text": "Path to .fai index file (auto-generated if not provided)"
+            "description": "Index FASTA hệ tham chiếu",
+            "help_text": "Đường dẫn tới file .fai; pipeline sẽ tự tạo nếu không truyền"
         },
         "target_bed": {
             "type": "string",
             "format": "file-path",
-            "description": "Exome target BED file",
-            "help_text": "BED file with exome capture target regions (required for WES mode)"
+            "description": "File BED vùng đích exome",
+            "help_text": "File BED chứa vùng bắt giữ exome; bắt buộc với chế độ WES"
         },
         "seq_type": {
             "type": "string",
             "enum": ["wes", "wgs"],
             "default": "wes",
-            "description": "Sequencing type: wes or wgs",
-            "help_text": "Specify whether data is from whole-exome (wes) or whole-genome (wgs) sequencing"
+            "description": "Kiểu dữ liệu: wes hoặc wgs",
+            "help_text": "Chọn dữ liệu giải trình tự exome toàn phần (wes) hoặc genome toàn phần (wgs)"
         },
         "dv_model_type": {
             "type": "string",
             "enum": ["WGS", "WES", "PACBIO", "ONT_R104", "HYBRID_PACBIO_ILLUMINA", "MASSEQ", "RNASEQ"],
-            "description": "DeepVariant model type",
-            "help_text": "Override automatic model selection. Auto-determined from seq_type if not specified"
+            "description": "Loại model DeepVariant",
+            "help_text": "Ghi đè lựa chọn model tự động; nếu không truyền sẽ suy ra từ seq_type"
         },
         "dv_version": {
             "type": "string",
             "default": "1.10.0",
-            "description": "DeepVariant Docker image version",
-            "help_text": "Version of DeepVariant Docker image to use (e.g., 1.10.0)"
+            "description": "Phiên bản Docker image DeepVariant",
+            "help_text": "Phiên bản Docker image DeepVariant cần dùng, ví dụ 1.10.0"
         },
         "dv_num_shards": {
             "type": "integer",
-            "description": "Number of shards for DeepVariant parallelization",
-            "help_text": "Number of parallel shards for make_examples stage (default: number of CPUs)"
+            "description": "Số shard để DeepVariant chạy song song",
+            "help_text": "Số shard song song cho bước make_examples; mặc định bằng số CPU của task"
         },
         "dv_gvcf": {
             "type": "boolean",
             "default": true,
-            "description": "Generate gVCF output",
-            "help_text": "Generate genomic VCF output in addition to VCF"
+            "description": "Xuất thêm gVCF",
+            "help_text": "Tạo genomic VCF bên cạnh VCF thường"
         },
         "dv_extra_args": {
             "type": "string",
-            "description": "Additional DeepVariant arguments",
-            "help_text": "Extra arguments to pass to run_deepvariant"
+            "description": "Tham số bổ sung cho DeepVariant",
+            "help_text": "Các tham số phụ truyền trực tiếp cho run_deepvariant"
         },
         "skip_fastqc": {
             "type": "boolean",
             "default": false,
-            "description": "Skip FastQC quality control",
-            "help_text": "Skip FastQC step for raw and trimmed reads"
+            "description": "Bỏ qua QC bằng FastQC",
+            "help_text": "Bỏ qua FastQC cho read thô và read sau trim"
         },
         "skip_trim": {
             "type": "boolean",
             "default": false,
-            "description": "Skip adapter trimming",
-            "help_text": "Skip fastp adapter trimming step"
+            "description": "Bỏ qua trim adapter",
+            "help_text": "Bỏ qua bước trim adapter bằng fastp"
         },
         "skip_deepvariant": {
             "type": "boolean",
             "default": false,
-            "description": "Skip DeepVariant variant calling",
-            "help_text": "Skip DeepVariant step (useful for QC-only runs)"
+            "description": "Bỏ qua bước gọi biến thể bằng DeepVariant",
+            "help_text": "Bỏ qua DeepVariant; hữu ích khi chỉ muốn chạy QC/căn chỉnh"
         },
         "skip_multiqc": {
             "type": "boolean",
             "default": false,
-            "description": "Skip MultiQC report generation",
-            "help_text": "Skip MultiQC aggregated report generation"
+            "description": "Bỏ qua tạo báo cáo MultiQC",
+            "help_text": "Không tạo báo cáo tổng hợp MultiQC"
         },
         "fastp_extra_args": {
             "type": "string",
-            "description": "Additional fastp arguments",
-            "help_text": "Extra arguments to pass to fastp"
+            "description": "Tham số bổ sung cho fastp",
+            "help_text": "Các tham số phụ truyền trực tiếp cho fastp"
         },
         "adapter_preset": {
             "type": "string",
             "enum": ["illumina", "none"],
             "default": "illumina",
-            "description": "Adapter preset for fastp",
-            "help_text": "Use illumina to trim common Illumina adapters by default, or none to rely only on fastp auto-detection/custom settings"
+            "description": "Preset adapter cho fastp",
+            "help_text": "Dùng illumina để trim adapter Illumina phổ biến, hoặc none để chỉ dùng tự phát hiện/cấu hình tùy chỉnh"
         },
         "adapter_sequence": {
             "type": "string",
-            "description": "Custom read 1 adapter sequence",
-            "help_text": "Adapter sequence passed to fastp --adapter_sequence. Overrides adapter_preset when set"
+            "description": "Adapter tùy chỉnh cho read 1",
+            "help_text": "Chuỗi adapter truyền cho fastp --adapter_sequence; ghi đè adapter_preset khi được đặt"
         },
         "adapter_sequence_r2": {
             "type": "string",
-            "description": "Custom read 2 adapter sequence",
-            "help_text": "Adapter sequence passed to fastp --adapter_sequence_r2. Overrides adapter_preset when set"
+            "description": "Adapter tùy chỉnh cho read 2",
+            "help_text": "Chuỗi adapter truyền cho fastp --adapter_sequence_r2; ghi đè adapter_preset khi được đặt"
         },
         "adapter_fasta": {
             "type": "string",
             "format": "file-path",
-            "description": "Custom adapter sequences",
-            "help_text": "FASTA file with custom adapter sequences for trimming"
+            "description": "Các adapter tùy chỉnh",
+            "help_text": "File FASTA chứa chuỗi adapter tùy chỉnh để trim"
         },
         "bwa_mem2_sort_threads": {
             "type": "integer",
             "default": 4,
-            "description": "Number of threads for BAM sorting",
-            "help_text": "Number of threads for samtools sort after alignment"
+            "description": "Số thread dùng khi sort BAM",
+            "help_text": "Số thread cho samtools sort sau căn chỉnh"
         },
         "bwa_mem2_sort_memory": {
             "type": "string",
             "default": "16.GB",
-            "description": "Memory for BAM sorting",
-            "help_text": "Memory allocated for samtools sort after alignment"
+            "description": "RAM dùng khi sort BAM",
+            "help_text": "Dung lượng RAM cấp cho samtools sort sau căn chỉnh"
         },
         "publish_dir_mode": {
             "type": "string",
             "enum": ["copy", "symlink", "link", "rellink", "move"],
             "default": "copy",
-            "description": "Publish directory mode",
-            "help_text": "Mode for publishing output files to results directory"
+            "description": "Chế độ publish output",
+            "help_text": "Cách Nextflow đưa file output vào thư mục kết quả"
         },
         "email": {
             "type": "string",
             "format": "email",
-            "description": "Email address for notifications",
-            "help_text": "Email address to receive pipeline completion notifications"
+            "description": "Email nhận thông báo",
+            "help_text": "Địa chỉ email nhận thông báo khi pipeline hoàn tất"
         },
         "email_on_fail": {
             "type": "string",
             "format": "email",
-            "description": "Email address for failure notifications",
-            "help_text": "Email address to receive pipeline failure notifications only"
+            "description": "Email nhận thông báo lỗi",
+            "help_text": "Địa chỉ email chỉ nhận thông báo khi pipeline lỗi"
         },
         "plaintext_email": {
             "type": "boolean",
             "default": false,
-            "description": "Send plain text email",
-            "help_text": "Send plain text email instead of HTML"
+            "description": "Gửi email dạng plain text",
+            "help_text": "Gửi email văn bản thuần thay vì HTML"
         },
         "monochrome_logs": {
             "type": "boolean",
             "default": false,
-            "description": "Monochrome logs",
-            "help_text": "Disable colored log output"
+            "description": "Log đơn sắc",
+            "help_text": "Tắt màu trong log"
         }
     },
     "required": ["input", "fasta"]

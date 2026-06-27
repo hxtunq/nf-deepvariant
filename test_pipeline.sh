@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # ========================================
-#  Pipeline Test Script
-#  Creates minimal test data and runs pipeline
+#  Script test pipeline
+#  Tao du lieu test toi thieu va chay pipeline
 # ========================================
 
 set -e
 
 echo "========================================"
-echo "  WES/WGS Pipeline Test Runner"
+echo "  Chay test WES/WGS Pipeline"
 echo "========================================"
 echo ""
 
@@ -17,15 +17,15 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Step 1: Check prerequisites
-echo "[Step 1/6] Checking prerequisites..."
+# Buoc 1: kiem tra dieu kien chay.
+echo "[Buoc 1/6] Kiem tra dieu kien chay..."
 
 check_cmd() {
     if command -v "$1" &> /dev/null; then
-        echo -e "  ${GREEN}✓${NC} $1 found"
+        echo -e "  ${GREEN}✓${NC} Tim thay $1"
         return 0
     else
-        echo -e "  ${RED}✗${NC} $1 NOT FOUND"
+        echo -e "  ${RED}✗${NC} Khong tim thay $1"
         return 1
     fi
 }
@@ -33,37 +33,37 @@ check_cmd() {
 ERRORS=0
 check_cmd nextflow || ((ERRORS++))
 
-# Check container engine
+# Kiem tra container engine.
 HAS_CONTAINER=false
 if command -v docker &> /dev/null && docker ps &> /dev/null; then
-    echo -e "  ${GREEN}✓${NC} Docker is running"
+    echo -e "  ${GREEN}✓${NC} Docker dang chay"
     CONTAINER_PROFILE="docker"
     HAS_CONTAINER=true
 elif command -v singularity &> /dev/null; then
-    echo -e "  ${GREEN}✓${NC} Singularity found"
+    echo -e "  ${GREEN}✓${NC} Tim thay Singularity"
     CONTAINER_PROFILE="singularity"
     HAS_CONTAINER=true
 fi
 
 if [ "$HAS_CONTAINER" = false ]; then
-    echo -e "  ${RED}✗${NC} No container engine available"
+    echo -e "  ${RED}✗${NC} Khong co container engine kha dung"
     ((ERRORS++))
 fi
 
 if [ $ERRORS -gt 0 ]; then
-    echo -e "${RED}Missing prerequisites. Run ./setup.sh for guide.${NC}"
+    echo -e "${RED}Thieu dieu kien chay. Chay ./setup.sh de xem huong dan.${NC}"
     exit 1
 fi
 
-# Step 2: Create test data directory
+# Buoc 2: tao thu muc du lieu test.
 echo ""
-echo "[Step 2/6] Creating test data..."
+echo "[Buoc 2/6] Tao du lieu test..."
 TEST_DIR="./test_run"
 mkdir -p $TEST_DIR/reads $TEST_DIR/reference
 
-# Step 3: Generate minimal test reference
+# Buoc 3: tao he tham chieu test toi thieu.
 echo ""
-echo "[Step 3/6] Generating test reference (10kb synthetic)..."
+echo "[Buoc 3/6] Tao he tham chieu test tong hop 10kb..."
 python3 << 'PYTHON'
 import random
 random.seed(42)
@@ -73,19 +73,19 @@ with open("./test_run/reference/test_ref.fa", "w") as f:
     seq = ''.join(random.choice(bases) for _ in range(10000))
     for i in range(0, len(seq), 80):
         f.write(seq[i:i+80] + "\n")
-print("  Created test_ref.fa (10kb synthetic)")
+print("  Da tao test_ref.fa (du lieu tong hop 10kb)")
 PYTHON
 
-# Create fai index
+# Tao index FAI.
 python3 -c "
 with open('./test_run/reference/test_ref.fa.fai', 'w') as f:
     f.write('chr20\t10000\t6\t80\t81\n')
 "
-echo "  Created test_ref.fa.fai"
+echo "  Da tao test_ref.fa.fai"
 
-# Step 4: Generate minimal test reads
+# Buoc 4: tao read test toi thieu.
 echo ""
-echo "[Step 4/6] Generating test reads (500 PE x 150bp)..."
+echo "[Buoc 4/6] Tao read test (500 PE x 150bp)..."
 python3 << 'PYTHON'
 import gzip, random
 random.seed(42)
@@ -99,24 +99,24 @@ with gzip.open('./test_run/reads/sample1_R1.fastq.gz', 'wt') as r1, \
         seq = rand_seq(150)
         r1.write(f'@READ_{i}/1\n{seq}\n+\n{rand_qual(150)}\n')
         r2.write(f'@READ_{i}/2\n{seq}\n+\n{rand_qual(150)}\n')
-print("  Created sample1_R1/R2.fastq.gz (500 reads)")
+print("  Da tao sample1_R1/R2.fastq.gz (500 reads)")
 PYTHON
 
-# Step 5: Create samplesheet
+# Buoc 5: tao samplesheet.
 echo ""
-echo "[Step 5/6] Creating samplesheet..."
+echo "[Buoc 5/6] Tao samplesheet..."
 cat > $TEST_DIR/samplesheet.csv << EOF
 sample_id,fastq_1,fastq_2
 sample1,$(pwd)/$TEST_DIR/reads/sample1_R1.fastq.gz,$(pwd)/$TEST_DIR/reads/sample1_R2.fastq.gz
 EOF
-echo "  Created samplesheet.csv"
+echo "  Da tao samplesheet.csv"
 
-# Step 6: Run pipeline
+# Buoc 6: chay pipeline.
 echo ""
-echo "[Step 6/6] Running pipeline test..."
-echo "  Container profile: $CONTAINER_PROFILE"
-echo "  Reference: $TEST_DIR/reference/test_ref.fa"
-echo "  Output: $TEST_DIR/results"
+echo "[Buoc 6/6] Chay test pipeline..."
+echo "  Profile container: $CONTAINER_PROFILE"
+echo "  He tham chieu: $TEST_DIR/reference/test_ref.fa"
+echo "  Ket qua: $TEST_DIR/results"
 echo ""
 
 nextflow run main.nf \
@@ -129,12 +129,12 @@ nextflow run main.nf \
 
 echo ""
 echo "========================================"
-echo -e "${GREEN}  Test completed successfully!${NC}"
+echo -e "${GREEN}  Test hoan tat thanh cong!${NC}"
 echo "========================================"
 echo ""
-echo "Results: $TEST_DIR/results/"
+echo "Ket qua: $TEST_DIR/results/"
 echo ""
-echo "QC Reports:"
+echo "Bao cao QC:"
 echo "  cat $TEST_DIR/results/fastq_qc/*.summary.txt"
 echo "  cat $TEST_DIR/results/samtools_qc/*.summary.txt"
 echo "  cat $TEST_DIR/results/vcf_qc/*.validation.txt"

@@ -1,7 +1,7 @@
 /*
  * ========================================
- *  FASTQ_QC - Lightweight FASTQ validation
- *  Uses seqkit (lightweight) or awk for basic checks
+ *  FASTQ_QC - Kiểm tra FASTQ nhẹ
+ *  Dùng seqkit hoặc awk cho các kiểm tra cơ bản
  * ========================================
  */
 
@@ -28,7 +28,7 @@ process FASTQ_VALIDATION {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    # FASTQ validation and summary
+    # Kiểm tra FASTQ và tạo file tóm tắt.
     echo "========================================" > ${prefix}.summary.txt
     echo "  FASTQ Validation: ${meta.id}" >> ${prefix}.summary.txt
     echo "========================================" >> ${prefix}.summary.txt
@@ -39,10 +39,10 @@ process FASTQ_VALIDATION {
     for fq in ${reads}; do
         echo "--- \$fq ---" >> ${prefix}.summary.txt
         
-        # Basic seqkit stats
+        # Thống kê cơ bản bằng seqkit.
         seqkit stats -a \$fq > ${prefix}.\$(basename \$fq .fastq.gz).fqchk.txt 2>/dev/null || true
         
-        # Extract info
+        # Trích xuất thông tin chính.
         READS=\$(seqkit stats -T \$fq 2>/dev/null | tail -1 | cut -f4)
         AVG_LEN=\$(seqkit stats -T \$fq 2>/dev/null | tail -1 | cut -f7)
         GC=\$(seqkit stats -T \$fq 2>/dev/null | tail -1 | cut -f9)
@@ -51,7 +51,7 @@ process FASTQ_VALIDATION {
         echo "  Avg length:  \$AVG_LEN" >> ${prefix}.summary.txt
         echo "  GC%:         \$GC" >> ${prefix}.summary.txt
         
-        # Check if gzipped FASTQ is valid
+        # Kiểm tra FASTQ gzip có đọc được không.
         if ! gzip -t \$fq 2>/dev/null; then
             echo "  STATUS: FAIL - corrupted gzip" >> ${prefix}.summary.txt
             PASS=false
@@ -59,7 +59,7 @@ process FASTQ_VALIDATION {
             echo "  STATUS: PASS - valid gzip" >> ${prefix}.summary.txt
         fi
         
-        # Check for empty file
+        # Kiểm tra file rỗng.
         if [ ! -s "\$fq" ]; then
             echo "  STATUS: FAIL - empty file" >> ${prefix}.summary.txt
             PASS=false
@@ -68,7 +68,7 @@ process FASTQ_VALIDATION {
         echo "" >> ${prefix}.summary.txt
     done
     
-    # Pair-end consistency check (if 2 files)
+    # Kiểm tra tính nhất quán paired-end nếu có 2 file.
     NFILES=\$(echo ${reads} | wc -w)
     if [ "\$NFILES" -eq 2 ]; then
         R1_READS=\$(seqkit stats -T ${reads[0]} 2>/dev/null | tail -1 | cut -f4)

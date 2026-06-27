@@ -1,6 +1,6 @@
 /*
  * ========================================
- *  BWA - Read alignment
+ *  BWA - Căn chỉnh read
  * ========================================
  */
 
@@ -25,13 +25,13 @@ process BWA_MEM2_INDEX {
     
     script:
     """
-    # Create index directory
+    # Tạo thư mục index.
     mkdir -p bwa_mem2_index
     
-    # Copy staged FASTA into the index directory
+    # Sao chép FASTA đã stage vào thư mục index.
     cp ${fasta} bwa_mem2_index/genome.fa
     
-    # Build BWA index
+    # Tạo BWA index.
     bwa index \\
         -p bwa_mem2_index/genome \\
         bwa_mem2_index/genome.fa
@@ -73,10 +73,10 @@ process BWA_MEM2 {
     def single_end = reads instanceof Path || reads.size() == 1
     
     """
-    # Create RG header
+    # Tạo header read group.
     RG="@RG\\tID:${meta.id}\\tSM:${meta.id}\\tPL:ILLUMINA\\tLB:lib1\\tPU:unit1"
     
-    # Align with BWA and sort
+    # Căn chỉnh bằng BWA và sort BAM.
     bwa mem \\
         $args \\
         -R "\$RG" \\
@@ -86,7 +86,7 @@ process BWA_MEM2 {
         2> ${prefix}.bwa.log \\
         | samtools sort -@ ${task.cpus} -m 4G -o ${prefix}.bam -
     
-    # Check alignment stats
+    # Kiểm tra thống kê căn chỉnh.
     samtools flagstat ${prefix}.bam > ${prefix}.flagstat
     
     cat <<-END_VERSIONS > versions.yml

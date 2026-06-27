@@ -1,6 +1,6 @@
 /*
  * ========================================
- *  FASTQC - Quality control of raw/trimmed reads
+ *  FASTQC - Kiểm tra chất lượng read thô/sau trim
  * ========================================
  */
 
@@ -29,21 +29,21 @@ process FASTQC {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    # Run FastQC
+    # Chạy FastQC.
     fastqc \\
         $args \\
         --threads $task.cpus \\
         --outdir . \\
         $reads
     
-    # Rename output files for consistency
+    # Đổi tên output để thống nhất.
     for file in *.html *.zip; do
         if [[ -f "\$file" ]]; then
             mv "\$file" "${prefix}.\${file#*fastqc_}"
         fi
     done
     
-    # Create results summary file
+    # Tạo file tóm tắt kết quả.
     echo "FastQC results for ${meta.id}" > ${prefix}.results
     echo "  Input: ${reads}" >> ${prefix}.results
     echo "  Status: Completed" >> ${prefix}.results

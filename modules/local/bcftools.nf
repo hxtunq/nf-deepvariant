@@ -1,6 +1,6 @@
 /*
  * ========================================
- *  BCFTOOLS - VCF/BCF processing utilities
+ *  BCFTOOLS - Các tiện ích xử lý VCF/BCF
  * ========================================
  */
 
@@ -30,16 +30,16 @@ process BCFTOOLS_STATS {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def regions = target_bed ? "--regions-file ${target_bed}" : ''
     """
-    # Run bcftools stats
+    # Chạy bcftools stats.
     bcftools stats \\
         $args \\
         $regions \\
         $vcf \\
         > ${prefix}.bcftools_stats.txt
     
-    # Generate human-readable summary
+    # Tạo file tóm tắt dễ đọc.
     echo "========================================" > ${prefix}.summary.txt
-    echo "  VCF QC Summary: ${meta.id}" >> ${prefix}.summary.txt
+    echo "  Tom tat QC VCF: ${meta.id}" >> ${prefix}.summary.txt
     echo "========================================" >> ${prefix}.summary.txt
     echo "" >> ${prefix}.summary.txt
     
@@ -58,7 +58,7 @@ process BCFTOOLS_STATS {
     echo "--- SNP/INDEL TYPES ---" >> ${prefix}.summary.txt
     grep "^ST" ${prefix}.bcftools_stats.txt | head -5 >> ${prefix}.summary.txt || true
     
-    # Extract key metrics
+    # Trích xuất các chỉ số chính.
     SNPS=\$(grep "number of SNPs:" ${prefix}.bcftools_stats.txt | cut -f4 || true)
     INDELS=\$(grep "number of indels:" ${prefix}.bcftools_stats.txt | cut -f4 || true)
     TSTV=\$(grep "^TSTV" ${prefix}.bcftools_stats.txt | head -1 | cut -f5 || true)
@@ -69,7 +69,7 @@ process BCFTOOLS_STATS {
     echo "Indels:          \$INDELS" >> ${prefix}.summary.txt
     echo "Ts/Tv ratio:     \$TSTV" >> ${prefix}.summary.txt
     
-    # Sanity checks
+    # Kiểm tra nhanh tính hợp lý.
     if [ "\$SNPS" -gt 0 ] 2>/dev/null; then
         if awk -v value="\$TSTV" 'BEGIN { exit !(value != "" && value < 1.5) }'; then
             echo "WARNING: Low Ts/Tv ratio (<1.5) - possible quality issue" >> ${prefix}.summary.txt
@@ -108,64 +108,64 @@ process VCF_VALIDATION {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    # Validate VCF file integrity
+    # Kiểm tra tính toàn vẹn của file VCF.
     echo "========================================" > ${prefix}.validation.txt
-    echo "  VCF Validation: ${meta.id}" >> ${prefix}.validation.txt
+    echo "  Kiem tra VCF: ${meta.id}" >> ${prefix}.validation.txt
     echo "========================================" >> ${prefix}.validation.txt
     echo "" >> ${prefix}.validation.txt
     
     PASS=true
     
-    # 1. Check if file exists and is non-empty
+    # 1. Kiểm tra file tồn tại và không rỗng.
     if [ ! -s "$vcf" ]; then
-        echo "FAIL: VCF file is empty or missing" >> ${prefix}.validation.txt
+        echo "FAIL: File VCF rong hoac bi thieu" >> ${prefix}.validation.txt
         PASS=false
     else
-        echo "PASS: VCF file exists and is non-empty" >> ${prefix}.validation.txt
+        echo "PASS: File VCF ton tai va khong rong" >> ${prefix}.validation.txt
     fi
     
-    # 2. Check if tabix index exists
+    # 2. Kiểm tra tabix index có tồn tại không.
     if [ ! -f "${vcf}.tbi" ] && [ ! -f "$tbi" ]; then
-        echo "FAIL: Tabix index (.tbi) is missing" >> ${prefix}.validation.txt
+        echo "FAIL: Thieu tabix index (.tbi)" >> ${prefix}.validation.txt
         PASS=false
     else
-        echo "PASS: Tabix index exists" >> ${prefix}.validation.txt
+        echo "PASS: Co tabix index" >> ${prefix}.validation.txt
     fi
     
-    # 3. Check VCF header
+    # 3. Kiểm tra header VCF.
     HEADER_LINES=\$(bcftools view -h $vcf 2>/dev/null | wc -l)
     if [ "\$HEADER_LINES" -eq 0 ]; then
-        echo "FAIL: No VCF header found" >> ${prefix}.validation.txt
+        echo "FAIL: Khong tim thay header VCF" >> ${prefix}.validation.txt
         PASS=false
     else
-        echo "PASS: VCF header found (\$HEADER_LINES lines)" >> ${prefix}.validation.txt
+        echo "PASS: Tim thay header VCF (\$HEADER_LINES dong)" >> ${prefix}.validation.txt
     fi
     
-    # 4. Check if VCF has data lines
+    # 4. Kiểm tra VCF có dòng dữ liệu không.
     DATA_LINES=\$(bcftools view -H $vcf 2>/dev/null | wc -l)
     if [ "\$DATA_LINES" -eq 0 ]; then
-        echo "WARNING: No variant records in VCF" >> ${prefix}.validation.txt
+        echo "WARNING: Khong co record bien the trong VCF" >> ${prefix}.validation.txt
     else
-        echo "PASS: VCF has \$DATA_LINES variant records" >> ${prefix}.validation.txt
+        echo "PASS: VCF co \$DATA_LINES record bien the" >> ${prefix}.validation.txt
     fi
     
-    # 5. Check required VCF columns
+    # 5. Kiểm tra các cột VCF bắt buộc.
     bcftools view -h $vcf 2>/dev/null | tail -1 | grep -q "^#CHROM" && \\
-        echo "PASS: VCF has required #CHROM header" >> ${prefix}.validation.txt || \\
-        echo "FAIL: Missing #CHROM header line" >> ${prefix}.validation.txt
+        echo "PASS: VCF co header #CHROM bat buoc" >> ${prefix}.validation.txt || \\
+        echo "FAIL: Thieu dong header #CHROM" >> ${prefix}.validation.txt
     
-    # 6. Try to query VCF (tests if it's well-formed)
+    # 6. Thử query VCF để kiểm tra định dạng.
     if bcftools view $vcf 2>/dev/null | head -1 | grep -q "^"; then
-        echo "PASS: VCF is parseable by bcftools" >> ${prefix}.validation.txt
+        echo "PASS: bcftools doc duoc VCF" >> ${prefix}.validation.txt
     else
-        echo "WARNING: VCF may have formatting issues" >> ${prefix}.validation.txt
+        echo "WARNING: VCF co the co loi dinh dang" >> ${prefix}.validation.txt
     fi
     
     echo "" >> ${prefix}.validation.txt
     if [ "\$PASS" = true ]; then
         echo "OVERALL: PASS" >> ${prefix}.validation.txt
     else
-        echo "OVERALL: FAIL - check errors above" >> ${prefix}.validation.txt
+        echo "OVERALL: FAIL - xem loi ben tren" >> ${prefix}.validation.txt
     fi
     
     cat <<-END_VERSIONS > versions.yml

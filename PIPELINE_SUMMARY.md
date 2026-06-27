@@ -1,44 +1,44 @@
-# Pipeline Summary
+# Tóm Tắt Pipeline
 
-`nf-deepvariant` is a Nextflow DSL2 workflow for WES/WGS small-variant calling from paired FASTQ files.
+`nf-deepvariant` là workflow Nextflow DSL2 để gọi biến thể nhỏ WES/WGS từ dữ liệu paired-end FASTQ.
 
-## Main Steps
+## Các Bước Chính
 
 ```text
-FASTQ validation
-Raw FastQC
-fastp trimming
-Trimmed FastQC
-BWA-MEM2 alignment
-samtools sort/index
-BAM QC with samtools flagstat/stats/idxstats
-DeepVariant variant calling
-VCF QC with bcftools
-MultiQC report
-Software version collection
+Kiểm tra FASTQ
+FastQC cho read thô
+Trim bằng fastp
+FastQC cho read sau trim
+Căn chỉnh bằng BWA-MEM2
+Sort/index BAM bằng samtools
+QC BAM bằng samtools flagstat/stats/idxstats
+Gọi biến thể bằng DeepVariant
+QC VCF bằng bcftools
+Báo cáo MultiQC
+Tổng hợp phiên bản phần mềm
 ```
 
-## Main Files
+## File Chính
 
-- `main.nf`: workflow orchestration
-- `nextflow.config`: default parameters and profiles
-- `conf/base.config`: resource defaults
-- `conf/modules.config`: module output configuration
-- `modules/local/*.nf`: process modules
-- `run_pipeline.sh`: Bash launcher
-- `setup.sh`: local prerequisite checker
-- `validate_pipeline.sh`: repository sanity checks
-- `test_data/`: tiny synthetic smoke-test dataset
+- `main.nf`: điều phối workflow
+- `nextflow.config`: tham số mặc định và profile chạy
+- `conf/base.config`: cấu hình tài nguyên mặc định
+- `conf/modules.config`: cấu hình output cho từng module
+- `modules/local/*.nf`: các process module
+- `run_pipeline.sh`: launcher Bash
+- `setup.sh`: kiểm tra môi trường cục bộ
+- `validate_pipeline.sh`: kiểm tra nhanh cấu trúc repo
+- `test_data/`: dữ liệu tổng hợp nhỏ để smoke test
 
-## Public Use
+## Cách Dùng Public
 
-Clone the repo, check the environment, prepare a samplesheet, then run:
+Clone repo, kiểm tra môi trường, chuẩn bị samplesheet, rồi chạy:
 
 ```bash
 ./run_pipeline.sh --input samplesheet.csv --fasta reference.fa --seq_type wgs --profile docker
 ```
 
-For WES, add:
+Với WES, thêm:
 
 ```bash
 --target_bed capture_targets.bed

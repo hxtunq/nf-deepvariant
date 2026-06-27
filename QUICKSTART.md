@@ -1,4 +1,4 @@
-# Quick Start
+# Chạy Nhanh
 
 ```bash
 git clone https://github.com/hxtunq/nf-deepvariant.git
@@ -7,14 +7,14 @@ chmod +x setup.sh run_pipeline.sh
 ./setup.sh
 ```
 
-Prepare `samplesheet.csv`:
+Chuẩn bị `samplesheet.csv`:
 
 ```csv
 sample_id,fastq_1,fastq_2
 sample1,/data/sample1_R1.fastq.gz,/data/sample1_R2.fastq.gz
 ```
 
-Run WGS:
+Chạy WGS:
 
 ```bash
 ./run_pipeline.sh \
@@ -24,7 +24,7 @@ Run WGS:
   --profile docker
 ```
 
-Run WES:
+Chạy WES:
 
 ```bash
 ./run_pipeline.sh \
@@ -35,7 +35,7 @@ Run WES:
   --profile docker
 ```
 
-Smoke test with bundled synthetic data:
+Chạy thử bằng dữ liệu tổng hợp nhỏ có sẵn trong repo:
 
 ```bash
 nextflow run main.nf -profile test,docker

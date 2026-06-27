@@ -1,6 +1,6 @@
 /*
  * ========================================
- *  DEEPVARIANT - Deep learning variant calling
+ *  DEEPVARIANT - Gọi biến thể bằng mô hình học sâu
  * ========================================
  */
 
@@ -14,7 +14,7 @@ process DEEPVARIANT {
     tuple val(meta), path(bam), path(bai)
     path fasta
     path fai
-    path target_bed  // Optional: BED file for WES target regions
+    path target_bed  // Tùy chọn: file BED vùng đích cho WES
     
     output:
     tuple val(meta), path("*.vcf.gz")    , emit: vcf
@@ -49,7 +49,7 @@ process DEEPVARIANT {
     // Extra arguments
     def extra_args = params.dv_extra_args ?: ''
     """
-    # Run DeepVariant
+    # Chạy DeepVariant.
     /opt/deepvariant/bin/run_deepvariant \\
         --model_type ${model_type} \\
         --ref $fasta \\
@@ -61,7 +61,7 @@ process DEEPVARIANT {
         ${extra_args} \\
         ${args}
     
-    # Generate visual report if available
+    # Ghi nhận visual report nếu DeepVariant tạo ra.
     if [ -f ${prefix}.visual_report.html ]; then
         echo "Visual report generated: ${prefix}.visual_report.html"
     fi

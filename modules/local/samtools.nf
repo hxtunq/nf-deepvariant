@@ -1,6 +1,6 @@
 /*
  * ========================================
- *  SAMTOOLS - BAM processing utilities
+ *  SAMTOOLS - Các tiện ích xử lý BAM
  * ========================================
  */
 
@@ -247,18 +247,18 @@ process BAM_QC {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def ref = fasta ? "-r ${fasta}" : ''
     """
-    # 1. flagstat - basic alignment statistics
+    # 1. flagstat - thống kê căn chỉnh cơ bản.
     samtools flagstat -@ $task.cpus $bam > ${prefix}.flagstat
     
-    # 2. stats - detailed statistics
+    # 2. stats - thống kê chi tiết.
     samtools stats -@ $task.cpus $ref $bam > ${prefix}.stats
     
-    # 3. idxstats - per-chromosome read counts
+    # 3. idxstats - số read theo từng nhiễm sắc thể/contig.
     samtools idxstats $bam > ${prefix}.idxstats
     
-    # 4. Generate human-readable summary
+    # 4. Tạo file tóm tắt dễ đọc.
     echo "========================================" > ${prefix}.summary.txt
-    echo "  BAM QC Summary: ${meta.id}" >> ${prefix}.summary.txt
+    echo "  Tom tat QC BAM: ${meta.id}" >> ${prefix}.summary.txt
     echo "========================================" >> ${prefix}.summary.txt
     echo "" >> ${prefix}.summary.txt
     
@@ -274,7 +274,7 @@ process BAM_QC {
     head -25 ${prefix}.idxstats >> ${prefix}.summary.txt
     echo "..." >> ${prefix}.summary.txt
     
-    # 5. Extract key metrics for quick check
+    # 5. Trích xuất chỉ số chính để kiểm tra nhanh.
     TOTAL=\$(grep "in total" ${prefix}.flagstat | cut -f1 -d' ')
     MAPPED=\$(grep "mapped (" ${prefix}.flagstat | head -1 | cut -f1 -d' ')
     DUPLICATE=\$(grep "duplicates" ${prefix}.flagstat | head -1 | cut -f1 -d' ')
@@ -288,7 +288,7 @@ process BAM_QC {
         echo "Mapped reads:    \$MAPPED (\${MAP_PCT}%)" >> ${prefix}.summary.txt
         echo "Duplicates:      \$DUPLICATE (\${DUP_PCT}%)" >> ${prefix}.summary.txt
         
-        # Flag warnings
+        # Gắn cảnh báo nếu chỉ số vượt ngưỡng.
         if awk -v value="\$MAP_PCT" 'BEGIN { exit !(value < 80) }'; then
             echo "WARNING: Low mapping rate (<80%)" >> ${prefix}.summary.txt
         fi

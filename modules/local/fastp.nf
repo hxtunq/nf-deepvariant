@@ -1,6 +1,6 @@
 /*
  * ========================================
- *  FASTP - Adapter trimming and quality filtering
+ *  FASTP - Trim adapter và lọc chất lượng
  * ========================================
  */
 
@@ -33,7 +33,7 @@ process FASTP {
     
     if (single_end) {
         """
-        # Run fastp for single-end reads
+        # Chạy fastp cho read single-end.
         fastp \\
             $args \\
             --in1 ${reads} \\
@@ -50,7 +50,7 @@ process FASTP {
         """
     } else {
         """
-        # Run fastp for paired-end reads
+        # Chạy fastp cho read paired-end.
         fastp \\
             $args \\
             --in1 ${reads[0]} \\

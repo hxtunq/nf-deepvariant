@@ -4,27 +4,27 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Usage: ./run_pipeline.sh --input samplesheet.csv --fasta reference.fa [options]
+Huong dan: ./run_pipeline.sh --input samplesheet.csv --fasta reference.fa [tuy_chon]
 
-Required:
-  --input FILE          Samplesheet CSV with columns: sample_id,fastq_1,fastq_2
-  --fasta FILE          Reference genome FASTA
+Bat buoc:
+  --input FILE          Samplesheet CSV co cac cot: sample_id,fastq_1,fastq_2
+  --fasta FILE          File FASTA he tham chieu
 
-Options:
-  --seq_type TYPE       wes or wgs (default: wes)
-  --target_bed FILE     Target BED file, required when --seq_type wes
-  --outdir DIR          Output directory (default: ./results)
-  --profile PROFILE     Nextflow profile: docker, singularity, apptainer, conda (default: docker)
-  --dv_version VERSION  DeepVariant container version (default: 1.10.0)
-  --dv_num_shards N     Number of DeepVariant shards
-  --adapter_preset VAL  illumina or none (default: illumina)
-  --skip_fastqc         Skip FastQC
-  --skip_trim           Skip fastp trimming
-  --skip_deepvariant    Stop before DeepVariant
-  --skip_multiqc        Skip MultiQC
-  -h, --help            Show this help
+Tuy chon:
+  --seq_type TYPE       wes hoac wgs (mac dinh: wes)
+  --target_bed FILE     File BED vung bat giu, bat buoc khi --seq_type wes
+  --outdir DIR          Thu muc ket qua (mac dinh: ./results)
+  --profile PROFILE     Profile Nextflow: docker, singularity, apptainer, conda (mac dinh: docker)
+  --dv_version VERSION  Phien ban container DeepVariant (mac dinh: 1.10.0)
+  --dv_num_shards N     So shard cho DeepVariant
+  --adapter_preset VAL  illumina hoac none (mac dinh: illumina)
+  --skip_fastqc         Bo qua FastQC
+  --skip_trim           Bo qua trim bang fastp
+  --skip_deepvariant    Dung truoc buoc DeepVariant
+  --skip_multiqc        Bo qua MultiQC
+  -h, --help            Hien thi huong dan nay
 
-Examples:
+Vi du:
   ./run_pipeline.sh --input samplesheet.csv --fasta /data/GRCh38.fa --seq_type wgs
 
   ./run_pipeline.sh \
@@ -66,29 +66,29 @@ while [[ $# -gt 0 ]]; do
         --skip_deepvariant) SKIP_DEEPVARIANT=true; shift ;;
         --skip_multiqc) SKIP_MULTIQC=true; shift ;;
         -h|--help) usage; exit 0 ;;
-        *) echo "ERROR: Unknown option: $1" >&2; usage; exit 1 ;;
+        *) echo "LOI: tuy chon khong hop le: $1" >&2; usage; exit 1 ;;
     esac
 done
 
 if [[ -z "$INPUT" ]]; then
-    echo "ERROR: --input is required" >&2
+    echo "LOI: can truyen --input" >&2
     usage
     exit 1
 fi
 
 if [[ -z "$FASTA" ]]; then
-    echo "ERROR: --fasta is required" >&2
+    echo "LOI: can truyen --fasta" >&2
     usage
     exit 1
 fi
 
 if [[ "$SEQ_TYPE" != "wes" && "$SEQ_TYPE" != "wgs" ]]; then
-    echo "ERROR: --seq_type must be wes or wgs" >&2
+    echo "LOI: --seq_type phai la wes hoac wgs" >&2
     exit 1
 fi
 
 if [[ "$SEQ_TYPE" == "wes" && -z "$TARGET_BED" ]]; then
-    echo "ERROR: WES mode requires --target_bed" >&2
+    echo "LOI: che do WES can --target_bed" >&2
     exit 1
 fi
 
@@ -113,13 +113,13 @@ cmd=(
 echo "========================================"
 echo "  nf-deepvariant"
 echo "========================================"
-echo "  Sequencing type : $SEQ_TYPE"
-echo "  Reference       : $FASTA"
-echo "  Output          : $OUTDIR"
+echo "  Kieu du lieu    : $SEQ_TYPE"
+echo "  He tham chieu   : $FASTA"
+echo "  Thu muc ket qua : $OUTDIR"
 echo "  Profile         : $PROFILE"
 echo "  DeepVariant     : $DV_VERSION"
 echo "========================================"
-printf 'Running:'
+printf 'Lenh chay:'
 printf ' %q' "${cmd[@]}"
 printf '\n\n'
 

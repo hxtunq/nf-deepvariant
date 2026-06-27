@@ -1,6 +1,6 @@
 /*
  * ========================================
- *  UTILITIES - Helper processes
+ *  UTILITIES - Các process tiện ích
  * ========================================
  */
 
@@ -26,33 +26,33 @@ process CUSTOM_DUMPSOFTWAREVERSIONS {
     
     script:
     """
-    # Collect all version files
+    # Gom tất cả file phiên bản.
     for file in ${versions}; do
         cat \$file >> all_versions.yml
     done
     
-    # Create formatted version files
+    # Tạo file phiên bản đã định dạng.
     cat <<-END_YML > software_versions.yml
-    "WES/WGS DeepVariant Pipeline":
+    "Pipeline WES/WGS DeepVariant":
         nextflow: ${workflow.nextflow.version}
         date: ${new java.util.Date().format('yyyy-MM-dd')}
     END_YML
     
-    # Append tool versions
+    # Ghép phiên bản của từng công cụ.
     cat all_versions.yml >> software_versions.yml
     
-    # Create MultiQC-compatible version file
+    # Tạo file phiên bản tương thích MultiQC.
     cat <<-END_MQC > software_versions_mqc.yml
     id: 'software_versions'
-    section_name: 'WES/WGS DeepVariant Pipeline Software Versions'
+    section_name: 'Phien ban phan mem cua pipeline WES/WGS DeepVariant'
     section_href: 'https://github.com'
     plot_type: 'html'
-    description: 'Software versions used in the pipeline'
+    description: 'Phien ban phan mem duoc dung trong pipeline'
     data: |
         <dl class="dl-horizontal">
     END_MQC
     
-    # Parse versions for MultiQC
+    # Parse thông tin phiên bản cho MultiQC.
     while IFS= read -r line; do
         if [[ \$line == *":"* ]]; then
             tool=\$(echo \$line | cut -d':' -f1 | tr -d ' "')

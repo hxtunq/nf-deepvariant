@@ -2,32 +2,32 @@
 
 /*
  * ========================================
- *  WES/WGS Variant Calling Pipeline with DeepVariant
+ *  Pipeline gọi biến thể WES/WGS bằng DeepVariant
  * ========================================
  *
  *  Author: hxtunq
  *  Version: 1.0.0
  *  
- *  Description:
- *    Complete whole-exome/whole-genome sequencing pipeline from FASTQ to VCF.
- *    Uses DeepVariant for variant calling with support for:
- *      - WES (Whole Exome Sequencing) and WGS (Whole Genome Sequencing) modes
- *      - Optional QC, trimming, and alignment steps
- *      - Configurable DeepVariant model version
+ *  Mô tả:
+ *    Pipeline từ FASTQ đến VCF cho dữ liệu WES/WGS.
+ *    DeepVariant được dùng để gọi biến thể, hỗ trợ:
+ *      - Chế độ WES và WGS
+ *      - QC, trim và căn chỉnh ở mức pipeline
+ *      - Cấu hình được phiên bản DeepVariant
  *  
- *  Pipeline Steps:
- *    1. QC (FastQC) - Quality control of raw reads [optional]
- *    2. Trimming (fastp) - Adapter and quality trimming [optional]
- *    3. Alignment (BWA-MEM2) - Read alignment to reference [optional]
- *    4. Post-alignment processing (Samtools sort/index and BAM QC)
- *    5. Variant Calling (DeepVariant) - Deep learning variant detection
- *    6. Reporting (MultiQC) - Aggregated QC report
+ *  Các bước:
+ *    1. QC read thô bằng FastQC
+ *    2. Trim adapter/chất lượng bằng fastp
+ *    3. Căn chỉnh read vào hệ tham chiếu bằng BWA-MEM2
+ *    4. Sort/index và QC BAM bằng samtools
+ *    5. Gọi biến thể bằng DeepVariant
+ *    6. Tổng hợp báo cáo bằng MultiQC
  */
 
 
 /*
  * ========================================
- *  Import modules/subworkflows
+ *  Nạp module/subworkflow
  * ========================================
  */
 
@@ -54,11 +54,11 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS       } from './modules/local/utils'
 
 /*
  * ========================================
- *  Subworkflows
+ *  Các subworkflow
  * ========================================
  */
 
-// Subworkflow: Prepare reference indexes if not provided
+// Chuẩn bị index cho hệ tham chiếu nếu người dùng chưa cung cấp.
 workflow PREPARE_REFERENCE {
     take:
     fasta
@@ -68,13 +68,13 @@ workflow PREPARE_REFERENCE {
     ch_fasta_indexed = fasta
     ch_fai = fasta_fai
     
-    // Generate FASTA index if not provided
+    // Tạo FASTA index nếu chưa có.
     if (!fasta_fai) {
         SAMTOOLS_FAIDX(fasta)
         ch_fai = SAMTOOLS_FAIDX.out.fai
     }
     
-    // Generate BWA-MEM2 index if not provided
+    // Tạo BWA-MEM2 index cho hệ tham chiếu.
     BWA_MEM2_INDEX(fasta)
     ch_bwa_index = BWA_MEM2_INDEX.out.index
     
@@ -84,7 +84,7 @@ workflow PREPARE_REFERENCE {
     bwa_index   = ch_bwa_index
 }
 
-// Subworkflow: QC and Trimming
+// Subworkflow QC và trim read.
 workflow QC_AND_TRIM {
     take:
     reads       // channel: [ val(meta), [ fastq_1, fastq_2 ] ]
@@ -94,19 +94,19 @@ workflow QC_AND_TRIM {
     ch_fastqc_results = Channel.empty()
     ch_fastq_validation = Channel.empty()
     
-    // FASTQ validation (always runs - lightweight check)
+    // Kiểm tra FASTQ; bước nhẹ và luôn chạy.
     FASTQ_VALIDATION(reads)
     ch_fastq_validation = FASTQ_VALIDATION.out.summary
     ch_versions = ch_versions.mix(FASTQ_VALIDATION.out.versions)
     
-    // Raw read QC
+    // QC read thô.
     if (!params.skip_fastqc) {
         FASTQC_RAW(reads)
         ch_fastqc_results = FASTQC_RAW.out.results
         ch_versions = ch_versions.mix(FASTQC_RAW.out.versions)
     }
     
-    // Trimming
+    // Trim adapter/chất lượng.
     ch_trimmed_reads = reads
     ch_trim_json = Channel.empty()
     
@@ -116,7 +116,7 @@ workflow QC_AND_TRIM {
         ch_trim_json = FASTP.out.json
         ch_versions = ch_versions.mix(FASTP.out.versions)
         
-        // Post-trim QC
+        // QC sau trim.
         if (!params.skip_fastqc) {
             FASTQC_TRIMMED(ch_trimmed_reads)
             ch_fastqc_results = ch_fastqc_results.mix(FASTQC_TRIMMED.out.results)
@@ -132,13 +132,13 @@ workflow QC_AND_TRIM {
     versions       = ch_versions
 }
 
-// Subworkflow: Alignment
+// Subworkflow căn chỉnh và QC BAM.
 workflow ALIGN {
     take:
     reads       // channel: [ val(meta), [ fastq_1, fastq_2 ] ]
-    index       // channel: BWA_MEM2 index files
-    fasta       // channel: reference FASTA
-    fai         // channel: reference FASTA index
+    index       // channel chứa file index BWA-MEM2
+    fasta       // channel chứa FASTA tham chiếu
+    fai         // channel chứa FASTA index
     
     main:
     ch_versions = Channel.empty()
@@ -169,34 +169,34 @@ workflow ALIGN {
 }
 
 
-// Subworkflow: DeepVariant calling
+// Subworkflow gọi biến thể bằng DeepVariant.
 workflow CALL_VARIANTS {
     take:
     bam         // channel: [ val(meta), bam ]
     bai         // channel: [ val(meta), bai ]
-    fasta       // channel: reference fasta
-    fai         // channel: fasta index
-    target_bed  // channel: target regions BED (optional for WES)
+    fasta       // channel chứa FASTA tham chiếu
+    fai         // channel chứa FASTA index
+    target_bed  // channel chứa BED vùng đích; dùng cho WES
     
     main:
     ch_versions = Channel.empty()
     ch_vcf_validation = Channel.empty()
     
-    // DeepVariant
+    // Chạy DeepVariant.
     ch_bam_with_bai = bam.join(bai)
     DEEPVARIANT(ch_bam_with_bai, fasta, fai, target_bed)
     ch_vcf = DEEPVARIANT.out.vcf.join(DEEPVARIANT.out.vcf_tbi)
     ch_gvcf = DEEPVARIANT.out.gvcf
     ch_versions = ch_versions.mix(DEEPVARIANT.out.versions)
     
-    // VCF QC Checkpoint - bcftools stats
+    // QC VCF bằng bcftools stats.
     BCFTOOLS_STATS(
         ch_vcf,
         target_bed
     )
     ch_versions = ch_versions.mix(BCFTOOLS_STATS.out.versions)
     
-    // VCF Validation Check
+    // Kiểm tra tính hợp lệ của VCF.
     VCF_VALIDATION(ch_vcf)
     ch_vcf_validation = VCF_VALIDATION.out.validation
     ch_versions = ch_versions.mix(VCF_VALIDATION.out.versions)
@@ -211,61 +211,61 @@ workflow CALL_VARIANTS {
 
 /*
  * ========================================
- *  Main workflow
+ *  Workflow chính
  * ========================================
  */
 
 workflow {
 
-    // Validate parameters
+    // Kiểm tra tham số đầu vào.
     if (!params.input) {
-        error "Input samplesheet not specified! Use --input <samplesheet.csv>"
+        error "Chưa truyền samplesheet. Dùng --input <samplesheet.csv>"
     }
     if (!params.fasta) {
-        error "Reference FASTA not specified! Use --fasta <reference.fa>"
+        error "Chưa truyền FASTA tham chiếu. Dùng --fasta <reference.fa>"
     }
     if (!['wes', 'wgs'].contains(params.seq_type)) {
-        error "Invalid sequencing type: ${params.seq_type}. Must be 'wes' or 'wgs'."
+        error "Kiểu dữ liệu không hợp lệ: ${params.seq_type}. Chỉ nhận 'wes' hoặc 'wgs'."
     }
     if (!['illumina', 'none'].contains(params.adapter_preset)) {
-        error "Invalid adapter preset: ${params.adapter_preset}. Must be 'illumina' or 'none'."
+        error "Adapter preset không hợp lệ: ${params.adapter_preset}. Chỉ nhận 'illumina' hoặc 'none'."
     }
     if (params.seq_type == 'wes' && !params.target_bed) {
-        error "WES mode requires --target_bed for exome capture regions."
+        error "Chế độ WES cần --target_bed cho vùng bắt giữ exome."
     }
     
-    // Resolve inputs
+    // Chuẩn hóa input.
     ch_input = Channel.value(file(params.input, checkIfExists: true))
     ch_fasta = Channel.value(file(params.fasta, checkIfExists: true))
     
-    // Resolve DeepVariant model type
+    // Xác định model DeepVariant theo kiểu dữ liệu.
     def dv_model = params.dv_model_type ?: (params.seq_type == 'wes' ? 'WES' : 'WGS')
     log.info """
     ============================================================
-      WES/WGS DeepVariant Pipeline v${params.version}
+      Pipeline WES/WGS DeepVariant v${params.version}
     ============================================================
-      Sequencing type  : ${params.seq_type.toUpperCase()}
-      DeepVariant model: ${dv_model}
-      DeepVariant ver  : ${params.dv_version}
-      Skip QC          : ${params.skip_fastqc}
-      Skip trimming    : ${params.skip_trim}
-      Adapter preset   : ${params.adapter_preset}
-      Skip DeepVariant : ${params.skip_deepvariant}
+      Kiểu dữ liệu       : ${params.seq_type.toUpperCase()}
+      Model DeepVariant  : ${dv_model}
+      Phiên bản DV       : ${params.dv_version}
+      Bỏ qua QC          : ${params.skip_fastqc}
+      Bỏ qua trim        : ${params.skip_trim}
+      Adapter preset     : ${params.adapter_preset}
+      Bỏ qua DeepVariant : ${params.skip_deepvariant}
     ============================================================
     """
 
     
-    // Initialize version channel
+    // Khởi tạo channel gom phiên bản phần mềm.
     ch_versions = Channel.empty()
     
-    // Collect FastQC results for MultiQC
+    // Gom output QC cho MultiQC.
     ch_fastqc_for_multiqc = Channel.empty()
     ch_trim_json_for_multiqc = Channel.empty()
     ch_alignment_logs_for_multiqc = Channel.empty()
     
     /*
      * ========================================
-     *  STEP 0: Parse input samplesheet
+     *  BƯỚC 0: Đọc samplesheet đầu vào
      * ========================================
      */
     INPUT_CHECK(ch_input)
@@ -282,7 +282,7 @@ workflow {
     
     /*
      * ========================================
-     *  STEP 1: Prepare reference indexes
+     *  BƯỚC 1: Chuẩn bị index hệ tham chiếu
      * ========================================
      */
     PREPARE_REFERENCE(
@@ -296,7 +296,7 @@ workflow {
     
     /*
      * ========================================
-     *  STEP 2: QC and Trimming
+     *  BƯỚC 2: QC và trim
      * ========================================
      */
     QC_AND_TRIM(ch_reads)
@@ -307,7 +307,7 @@ workflow {
     
     /*
      * ========================================
-     *  STEP 3: Alignment
+     *  BƯỚC 3: Căn chỉnh
      * ========================================
      */
     ALIGN(
@@ -323,7 +323,7 @@ workflow {
     
     /*
      * ========================================
-     *  STEP 5: DeepVariant variant calling
+     *  BƯỚC 4: Gọi biến thể bằng DeepVariant
      * ========================================
      */
     if (!params.skip_deepvariant) {
@@ -343,7 +343,7 @@ workflow {
     
     /*
      * ========================================
-     *  STEP 6: MultiQC reporting
+     *  BƯỚC 5: Báo cáo MultiQC
      * ========================================
      */
     if (!params.skip_multiqc) {
@@ -356,7 +356,7 @@ workflow {
     
     /*
      * ========================================
-     *  STEP 7: Collect software versions
+     *  BƯỚC 6: Tổng hợp phiên bản phần mềm
      * ========================================
      */
     CUSTOM_DUMPSOFTWAREVERSIONS(

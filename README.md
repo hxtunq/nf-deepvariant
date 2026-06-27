@@ -21,6 +21,7 @@ Các công cụ tin sinh học chạy trong container. Người dùng chỉ cầ
 
 ## Cấu Trúc Thư Mục
 
+```text
 ├── main.nf/                  Điều phối chính toàn bộ workflow
 ├── nextflow.config/          Định nghĩa tham số mặc định và profile chạy
 ├── conf/
@@ -33,6 +34,7 @@ Các công cụ tin sinh học chạy trong container. Người dùng chỉ cầ
 ├── run_pipeline.sh/          Launcher script bằng Bash để kích hoạt workflow
 ├── setup.sh/                 Kiểm tra và thiết lập môi trường cục bộ
 └── validate_pipeline.sh/     Kiểm tra nhanh cấu trúc và tính toàn vẹn của repo
+```
 
 ## Cài Đặt
 

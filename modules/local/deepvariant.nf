@@ -8,7 +8,7 @@ process DEEPVARIANT {
     tag "$meta.id"
     label 'process_high'
     
-    container "google/deepvariant:${params.dv_version ?: '1.8.0'}"
+    container "google/deepvariant:${params.dv_version ?: '1.10.0'}"
     
     input:
     tuple val(meta), path(bam), path(bai)
@@ -68,7 +68,7 @@ process DEEPVARIANT {
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        deepvariant: ${params.dv_version ?: '1.8.0'}
+        deepvariant: ${params.dv_version ?: '1.10.0'}
     END_VERSIONS
     """
 }

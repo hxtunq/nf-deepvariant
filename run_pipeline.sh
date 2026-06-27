@@ -15,7 +15,7 @@ Options:
   --target_bed FILE     Target BED file, required when --seq_type wes
   --outdir DIR          Output directory (default: ./results)
   --profile PROFILE     Nextflow profile: docker, singularity, apptainer, conda (default: docker)
-  --dv_version VERSION  DeepVariant container version (default: 1.8.0)
+  --dv_version VERSION  DeepVariant container version (default: 1.10.0)
   --dv_num_shards N     Number of DeepVariant shards
   --adapter_preset VAL  illumina or none (default: illumina)
   --skip_fastqc         Skip FastQC
@@ -42,7 +42,7 @@ TARGET_BED=""
 SEQ_TYPE="wes"
 OUTDIR="./results"
 PROFILE="docker"
-DV_VERSION="1.8.0"
+DV_VERSION="1.10.0"
 DV_NUM_SHARDS=""
 ADAPTER_PRESET="illumina"
 SKIP_FASTQC=false

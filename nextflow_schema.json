@@ -49,9 +49,9 @@
         },
         "dv_version": {
             "type": "string",
-            "default": "1.8.0",
+            "default": "1.10.0",
             "description": "DeepVariant Docker image version",
-            "help_text": "Version of DeepVariant Docker image to use (e.g., 1.8.0)"
+            "help_text": "Version of DeepVariant Docker image to use (e.g., 1.10.0)"
         },
         "dv_num_shards": {
             "type": "integer",

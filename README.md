@@ -87,7 +87,7 @@ nextflow run main.nf \
 | --- | --- | --- |
 | `--seq_type` | `wes` or `wgs` | `wes` |
 | `--target_bed` | Capture target BED, required for WES | unset |
-| `--dv_version` | DeepVariant Docker image version | `1.8.0` |
+| `--dv_version` | DeepVariant Docker image version | `1.10.0` |
 | `--dv_num_shards` | Number of DeepVariant shards | task CPU count |
 | `--adapter_preset` | `illumina` or `none` | `illumina` |
 | `--skip_fastqc` | Skip FastQC | false |

@@ -52,6 +52,12 @@ include { VCF_VALIDATION                    } from './modules/local/bcftools'
 include { MULTIQC                           } from './modules/local/multiqc'
 include { CUSTOM_DUMPSOFTWAREVERSIONS       } from './modules/local/utils'
 
+def resolve_samplesheet_path(value, samplesheet_dir) {
+    def raw_path = value as String
+    def is_absolute = java.nio.file.Paths.get(raw_path).isAbsolute()
+    file(is_absolute ? raw_path : "${samplesheet_dir}/${raw_path}", checkIfExists: true)
+}
+
 /*
  * ========================================
  *  Các subworkflow
@@ -242,11 +248,6 @@ workflow {
     // Chuẩn hóa input.
     def samplesheet_file = file(params.input, checkIfExists: true)
     def samplesheet_dir = samplesheet_file.parent
-    def resolve_samplesheet_path = { value ->
-        def raw_path = value as String
-        def is_absolute = java.nio.file.Paths.get(raw_path).isAbsolute()
-        file(is_absolute ? raw_path : "${samplesheet_dir}/${raw_path}", checkIfExists: true)
-    }
     ch_input = Channel.value(samplesheet_file)
     ch_fasta = Channel.value(file(params.fasta, checkIfExists: true))
     
@@ -288,8 +289,8 @@ workflow {
         .map { row ->
             def meta = [ id: row.sample_id ]
             def reads = row.fastq_2 ?
-                [ resolve_samplesheet_path(row.fastq_1), resolve_samplesheet_path(row.fastq_2) ] :
-                [ resolve_samplesheet_path(row.fastq_1) ]
+                [ resolve_samplesheet_path(row.fastq_1, samplesheet_dir), resolve_samplesheet_path(row.fastq_2, samplesheet_dir) ] :
+                [ resolve_samplesheet_path(row.fastq_1, samplesheet_dir) ]
             [ meta, reads ]
         }
     
